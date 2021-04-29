@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from datetime import datetime, timedelta
 from azure.devops.connection import Connection
 from msrest.authentication import BasicAuthentication
