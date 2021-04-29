@@ -26,23 +26,24 @@ def main(args):
     core_client = connection.clients_v6_0.get_build_client()
 
     # Get builds for pipeline
-    get_build_response = core_client.get_builds(args.project)
+    get_builds_response = core_client.get_builds(args.project)
+    if get_builds_response:
+        # Note: Unfinished builds have a finish_time of None
+        recent_builds = [b for b in get_builds_response if b.finish_time and d < b.finish_time]
+    else:
+        recent_builds = []
 
-    while get_build_response is not None:
-        for build in get_build_response:
-            # Omit current running builds with no finish time yet
-            if build.finish_time is not None:
-                if d < build.finish_time:
-                    # Get logs info from build
-                    get_build_log_response = core_client.get_build_logs(args.project, build.id)
-                    while get_build_log_response is not None:
-                        for log in get_build_log_response:
-                            # Get logs lines from logs from log info
-                            get_build_log_lines_response = core_client.get_build_log_lines(args.project, build.id, log.id)
-                            while get_build_log_lines_response is not None:
-                                for log_lines in get_build_log_lines_response:
-                                    # Outputs logs within given historical timeframe for project
-                                    print(log_lines)
+    for build in recent_builds:
+        # Get logs info from build
+        get_build_logs_response = core_client.get_build_logs(args.project, build.id)
+        if get_build_logs_response:
+            for log in get_build_logs_response:
+                # Get logs lines from logs from log info
+                get_build_log_lines_response = core_client.get_build_log_lines(args.project, build.id, log.id)
+                if get_build_log_lines_response:
+                    for log_lines in get_build_log_lines_response:
+                        # Outputs logs within given historical timeframe for project
+                        print(log_lines)
 
 
 if __name__ == '__main__':
